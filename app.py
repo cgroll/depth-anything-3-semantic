@@ -62,11 +62,56 @@ if __name__ == "__main__":
         gallery_dir=gallery_dir
     )
     
+    # Check if examples directory exists
+    examples_dir = os.path.join(workspace_dir, "examples")
+    examples_exist = os.path.exists(examples_dir)
+    
+    # Check if caching is enabled via environment variable (default: True if examples exist)
+    # Allow disabling via environment variable: DA3_CACHE_EXAMPLES=false
+    cache_examples_env = os.environ.get("DA3_CACHE_EXAMPLES", "").lower()
+    if cache_examples_env in ("false", "0", "no"):
+        cache_examples = False
+    elif cache_examples_env in ("true", "1", "yes"):
+        cache_examples = True
+    else:
+        # Default: enable caching if examples directory exists
+        cache_examples = examples_exist
+    
+    # Get cache_gs_tag from environment variable (default: "dl3dv")
+    cache_gs_tag = os.environ.get("DA3_CACHE_GS_TAG", "dl3dv")
+    
     # Launch with Spaces-friendly settings
     print("🚀 Launching Depth Anything 3 on Hugging Face Spaces...")
     print(f"📦 Model Directory: {model_dir}")
     print(f"📁 Workspace Directory: {workspace_dir}")
     print(f"🖼️  Gallery Directory: {gallery_dir}")
+    print(f"💾 Cache Examples: {cache_examples}")
+    if cache_examples:
+        if cache_gs_tag:
+            print(f"🏷️  Cache GS Tag: '{cache_gs_tag}' (scenes matching this tag will use high-res + 3DGS)")
+        else:
+            print("🏷️  Cache GS Tag: None (all scenes will use low-res only)")
+    
+    # Pre-cache examples if requested
+    if cache_examples:
+        print("\n" + "=" * 60)
+        print("Pre-caching mode enabled")
+        if cache_gs_tag:
+            print(f"Scenes containing '{cache_gs_tag}' will use HIGH-RES + 3DGS")
+            print("Other scenes will use LOW-RES only")
+        else:
+            print("All scenes will use LOW-RES only")
+        print("=" * 60)
+        app.cache_examples(
+            show_cam=True,
+            filter_black_bg=False,
+            filter_white_bg=False,
+            save_percentage=5.0,
+            num_max_points=1000,
+            cache_gs_tag=cache_gs_tag,
+            gs_trj_mode="smooth",
+            gs_video_quality="low",
+        )
     
     # Launch with minimal, Spaces-compatible configuration
     # Some parameters may cause routing issues, so we use minimal config
