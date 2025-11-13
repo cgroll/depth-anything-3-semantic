@@ -21,6 +21,7 @@ The original functionality has been split into modular components for better mai
 
 import argparse
 import os
+from functools import lru_cache
 from typing import Any, Dict, List
 import gradio as gr
 
@@ -575,7 +576,16 @@ class DepthAnything3App:
     ) -> None:
         """Set up example scene handlers."""
 
+        # Cache for example scene loading (in-memory cache for faster access)
+        _example_cache = {}
+
         def load_and_update_measure(name):
+            # Check cache first
+            if name in _example_cache:
+                print(f"✅ Using cached result for example scene: {name}")
+                return _example_cache[name]
+            
+            # Load example scene
             result = self.event_handlers.load_example_scene(name)
             # result = (reconstruction_output, target_dir, image_paths, log_message, processed_data, measure_view_selector, gs_video, gs_video_vis, gs_info_vis)  # noqa: E501
 
@@ -587,8 +597,19 @@ class DepthAnything3App:
                     self.event_handlers.visualization_handler.update_measure_view(result[4], 0)
                 )
 
-            return result + ("True", measure_img, measure_depth)
+            final_result = result + ("True", measure_img, measure_depth)
+            
+            # Cache the result (limit cache size to prevent memory issues)
+            if len(_example_cache) < 20:  # Cache up to 20 scenes
+                _example_cache[name] = final_result
+                print(f"💾 Cached result for example scene: {name}")
+            else:
+                print(f"⚠️ Cache full, not caching: {name}")
+            
+            return final_result
 
+        # Enable caching for example scene loading
+        # Gradio will cache the results based on the scene name
         for i, scene in enumerate(scenes):
             if i < len(scene_components):
                 scene_components[i].select(
@@ -607,6 +628,9 @@ class DepthAnything3App:
                         measure_image,
                         measure_depth_image,
                     ],
+                    # Note: cache_examples is not a valid parameter for select()
+                    # Caching is handled by file-based cache in load_example_scene()
+                    # which checks for predictions.npz files
                 )
 
     def launch(self, host: str = "127.0.0.1", port: int = 7860, **kwargs) -> None:
