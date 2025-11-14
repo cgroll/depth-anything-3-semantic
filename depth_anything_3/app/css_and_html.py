@@ -390,7 +390,7 @@ def get_header_html(logo_base64=None):
                 <a href="https://depth-anything-3.github.io" target="_blank" class="link-btn">
                     <i class="fas fa-globe" style="margin-right: 8px;"></i> Project Page
                 </a>
-                <a href="https://arxiv.org/abs/2406.09414" target="_blank" class="link-btn">
+                <a href="https://arxiv.org/abs/2511.10647" target="_blank" class="link-btn">
                     <i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Paper
                 </a>
                 <a href="https://github.com/ByteDance-Seed/Depth-Anything-3" target="_blank" class="link-btn">
