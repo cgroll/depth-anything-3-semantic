@@ -394,7 +394,7 @@ def get_header_html(logo_base64=None):
                     <i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Paper
                 </a>
                 <a href="https://github.com/ByteDance-Seed/Depth-Anything-3" target="_blank" class="link-btn">
-                    <i class="fab fa-github" style="margin-right: 8px;"></i> Code
+                    <i class="fab fa-github" style="margin-right: 8px;"></i> 🌟 Code
                 </a>
             </div>
         </div>
