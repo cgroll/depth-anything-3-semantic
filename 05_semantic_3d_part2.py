@@ -148,9 +148,11 @@ def project_to_3d(depth_maps, intrinsics, extrinsics, images):
     return points_3d, colors, view_indices
 
 
-def compute_object_fractions(points_3d, view_indices, masks, intrinsics, extrinsics):
+def compute_object_fractions(points_3d, view_indices, masks, intrinsics, extrinsics, images):
     """
     For each 3D point, compute the fraction of views where it appears in the object mask.
+
+    Uses the same projection and mask checking logic as 06_debug_projection.py.
 
     Args:
         points_3d: (M, 3) 3D points in world coordinates
@@ -158,6 +160,7 @@ def compute_object_fractions(points_3d, view_indices, masks, intrinsics, extrins
         masks: (N, H, W) binary masks
         intrinsics: (N, 3, 3) camera intrinsic matrices
         extrinsics: (N, 3, 4) camera extrinsic matrices
+        images: (N, H, W, 3) RGB images (used to get proper dimensions)
 
     Returns:
         object_fractions: (M,) fraction of views where each point is in the mask
@@ -176,39 +179,51 @@ def compute_object_fractions(points_3d, view_indices, masks, intrinsics, extrins
             print(f"   Processing view {view_idx + 1}/{N}...")
 
         mask = masks[view_idx]
+        image = images[view_idx]
         K = intrinsics[view_idx]
         extrinsic = extrinsics[view_idx]
-        H, W = mask.shape
+
+        # Get image dimensions from the actual image (same as 06_debug_projection.py line 144)
+        H, W = image.shape[:2]
+
+        # Resize mask to match image dimensions (same as 06_debug_projection.py lines 164-168)
+        if mask.shape != (H, W):
+            mask_resized = cv2.resize(mask, (W, H))
+        else:
+            mask_resized = mask
 
         # Transform 3D world points to camera coordinates
         # camera_point = R @ world_point + t
         R = extrinsic[:, :3]  # (3, 3)
         t = extrinsic[:, 3]   # (3,)
 
-        # Forward transformation: camera = R @ world + t
+        # Forward transformation: camera = R @ world + t (same as 06_debug_projection.py line 67)
         points_cam = (R @ points_3d.T).T + t  # (M, 3)
 
-        # Project to image coordinates
+        # Project to image coordinates (same as 06_debug_projection.py lines 70-75)
         fx, fy = K[0, 0], K[1, 1]
         cx, cy = K[0, 2], K[1, 2]
 
         # Avoid division by zero
         Zc = points_cam[:, 2]
-        x_img = (points_cam[:, 0] * fx / Zc) + cx
-        y_img = (points_cam[:, 1] * fy / Zc) + cy
+        u = (points_cam[:, 0] * fx / Zc) + cx
+        v = (points_cam[:, 1] * fy / Zc) + cy
 
         # Check if points are in image bounds and in front of camera
+        # (same as 06_debug_projection.py lines 78-82)
         in_bounds = (
-            (x_img >= 0) & (x_img < W) &
-            (y_img >= 0) & (y_img < H) &
-            (Zc > 0.001)  # In front of camera
+            (Zc > 0.001) &  # In front of camera
+            (u >= 0) & (u < W) &
+            (v >= 0) & (v < H)
         )
 
         # For points in bounds, check if they're in the mask
-        x_img_int = np.clip(x_img[in_bounds].astype(np.int32), 0, W - 1)
-        y_img_int = np.clip(y_img[in_bounds].astype(np.int32), 0, H - 1)
+        # Convert to integer pixel coordinates (same as 06_debug_projection.py lines 92-93)
+        u_int = np.clip(u[in_bounds].astype(np.int32), 0, W - 1)
+        v_int = np.clip(v[in_bounds].astype(np.int32), 0, H - 1)
 
-        in_mask = mask[y_img_int, x_img_int] > 0
+        # Check mask membership (using threshold 0.5 same as 06_debug_projection.py line 176)
+        in_mask = mask_resized[v_int, u_int] > 0.5
 
         # Update counts
         visible_count[in_bounds] += 1
@@ -423,7 +438,7 @@ Examples:
 
         # Step 3: Compute object fractions
         object_fractions = compute_object_fractions(
-            points_3d, view_indices, masks, intrinsics, extrinsics
+            points_3d, view_indices, masks, intrinsics, extrinsics, images
         )
 
         # Step 4: Create .glb visualization
