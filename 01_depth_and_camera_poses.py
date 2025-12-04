@@ -35,6 +35,7 @@ from pathlib import Path
 import imageio
 import numpy as np
 import torch
+from addict import Dict as AddictDict
 
 from depth_anything_3.api import DepthAnything3
 from depth_anything_3.utils.visualize import visualize_depth
@@ -122,12 +123,24 @@ def save_depth_maps(
         if prediction.processed_images is not None:
             save_dict["images"] = prediction.processed_images
 
-        # Save metric flag
-        save_dict["is_metric"] = prediction.is_metric
+        # Save metric flag (handle both int/bool and addict.Dict types)
+        if prediction.is_metric is not None:
+            if isinstance(prediction.is_metric, (dict, AddictDict)):
+                # If it's a dict or addict.Dict, treat as False (0)
+                # Empty addict.Dict means not metric
+                save_dict["is_metric"] = 0
+            else:
+                save_dict["is_metric"] = int(prediction.is_metric)
+        else:
+            save_dict["is_metric"] = 0
 
         # Save scale factor if available
         if prediction.scale_factor is not None:
-            save_dict["scale_factor"] = prediction.scale_factor
+            if isinstance(prediction.scale_factor, dict):
+                # Skip dict scale factors
+                pass
+            else:
+                save_dict["scale_factor"] = float(prediction.scale_factor)
 
         np.savez_compressed(npz_path, **save_dict)
         print(f"  ✓ Saved predictions data to {npz_path}")
