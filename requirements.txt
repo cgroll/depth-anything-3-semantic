@@ -44,5 +44,5 @@ uvicorn
 
 # 3D Gaussian Splatting
 # Note: This requires CUDA during build. If build fails on Spaces, see alternative solutions.
-gsplat @ https://github.com/nerfstudio-project/gsplat/releases/download/v1.5.3/gsplat-1.5.3+pt24cu124-cp310-cp310-linux_x86_64.whl
+# gsplat @ https://github.com/nerfstudio-project/gsplat/releases/download/v1.5.3/gsplat-1.5.3+pt24cu124-cp310-cp310-linux_x86_64.whl
 

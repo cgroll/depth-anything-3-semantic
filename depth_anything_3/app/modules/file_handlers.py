@@ -213,6 +213,8 @@ class FileHandler:
             return None, None, None, None
 
         target_dir, image_paths = self.handle_uploads(input_video, input_images, s_time_interval)
+        print(f"[DEBUG] update_gallery_on_upload: target_dir = {target_dir}")
+        print(f"[DEBUG] update_gallery_on_upload: num images = {len(image_paths) if image_paths else 0}")
         return (
             None,
             target_dir,

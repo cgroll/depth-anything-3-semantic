@@ -168,7 +168,7 @@ class DepthAnything3App:
         def get_theme():
             return get_gradio_theme()
 
-        with gr.Blocks(theme=get_theme(), css=GRADIO_CSS) as demo:
+        with gr.Blocks() as demo:
             # State variables for the tabbed interface
             is_example = gr.Textbox(label="is_example", visible=False, value="None")
             processed_data_state = gr.State(value=None)
@@ -176,12 +176,11 @@ class DepthAnything3App:
             selected_first_frame_state = gr.State(value="")
             selected_image_index_state = gr.State(value=0)  # Track selected image index
             # current_view_index = gr.State(value=0)  # noqa: F841 Track current view index
+            target_dir_output = gr.State(value=None)  # Use gr.State instead of hidden Textbox
 
             # Header and description
             self.ui_components.create_header_section()
             self.ui_components.create_description_section()
-
-            target_dir_output = gr.Textbox(label="Target Dir", visible=False, value="None")
 
             # Main content area
             with gr.Row():

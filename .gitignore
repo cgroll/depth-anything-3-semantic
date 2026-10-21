@@ -37,3 +37,7 @@ ENV/
 # Logs
 *.log
 
+
+# Local data and model weights (photos contain GPS EXIF)
+data/
+*.pt

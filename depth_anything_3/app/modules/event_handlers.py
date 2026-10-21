@@ -79,7 +79,7 @@ class EventHandlers:
         Returns:
             Status message
         """
-        if not target_dir or target_dir == "None" or not os.path.isdir(target_dir):
+        if not target_dir or not os.path.isdir(target_dir):
             return "No reconstruction available. Please run 'Reconstruct' first."
 
         if processed_data is None:
@@ -172,7 +172,11 @@ class EventHandlers:
         Returns:
             Tuple of reconstruction results
         """
-        if not os.path.isdir(target_dir) or target_dir == "None":
+        print(f"[DEBUG] gradio_demo called with target_dir: {target_dir}")
+        print(f"[DEBUG] target_dir type: {type(target_dir)}")
+        print(f"[DEBUG] target_dir exists: {os.path.isdir(target_dir) if target_dir else False}")
+
+        if not target_dir or not os.path.isdir(target_dir):
             return (
                 None,
                 "No valid target directory found. Please upload first.",
@@ -294,7 +298,7 @@ class EventHandlers:
         Returns:
             Tuple of (glb_file, log_message)
         """
-        if not target_dir or target_dir == "None" or not os.path.isdir(target_dir):
+        if not target_dir or not os.path.isdir(target_dir):
             return (
                 gr.update(),
                 "No reconstruction available. Please click the Reconstruct button first.",
@@ -394,7 +398,7 @@ class EventHandlers:
         gs_video_visible = False
         gs_info_visible = True
 
-        if target_dir and target_dir != "None":
+        if target_dir:
             predictions_path = os.path.join(target_dir, "predictions.npz")
             if os.path.exists(predictions_path):
                 try:
